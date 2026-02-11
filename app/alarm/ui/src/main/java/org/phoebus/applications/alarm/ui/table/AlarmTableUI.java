@@ -122,6 +122,7 @@ public class AlarmTableUI extends BorderPane
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
 
     final TextField search = new ClearingTextField();
+    private boolean shouldClearSearch = false;
 
     private final Label no_server = AlarmUI.createNoServerLabel();
 
@@ -360,7 +361,12 @@ public class AlarmTableUI extends BorderPane
         });
 
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
-        search.textProperty().addListener(prop -> selectRows());
+        search.textProperty().addListener(prop -> {
+            if(!search.getText().trim().isEmpty()) {
+                shouldClearSearch = true;
+            }
+            selectRows();
+        });
 
     	if (AlarmSystem.disable_notify_visible)
     	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
@@ -713,8 +719,12 @@ public class AlarmTableUI extends BorderPane
         final String glob = search.getText().trim();
         if (glob.isEmpty())
         {
-            active.getSelectionModel().clearSelection();
-            acknowledged.getSelectionModel().clearSelection();
+            if(shouldClearSearch)
+            {
+                active.getSelectionModel().clearSelection();
+                acknowledged.getSelectionModel().clearSelection();
+                shouldClearSearch = false;
+            }
             return;
         }
 
